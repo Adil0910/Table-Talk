@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
-import { fetchOrders, updateOrderStatus, SOCKET_URL } from '../api.js';
+import { fetchOrders, updateOrderStatus, clearAdminToken, SOCKET_URL } from '../api.js';
 import OrderTicket from '../components/OrderTicket.jsx';
 
 const COLUMNS = [
@@ -15,9 +16,26 @@ export default function Dashboard() {
   const [connected, setConnected] = useState(false);
   const [flashId, setFlashId] = useState(null);
   const socketRef = useRef(null);
+  const navigate = useNavigate();
+
+  function handleAuthError(err) {
+    if (err?.response?.status === 401) {
+      clearAdminToken();
+      navigate('/admin/login', { replace: true, state: { from: '/dashboard' } });
+      return true;
+    }
+    return false;
+  }
+
+  function handleLogout() {
+    clearAdminToken();
+    navigate('/admin/login', { replace: true });
+  }
 
   useEffect(() => {
-    fetchOrders().then(setOrders).catch(() => {});
+    fetchOrders()
+      .then(setOrders)
+      .catch((err) => handleAuthError(err));
 
     const socket = io(SOCKET_URL);
     socketRef.current = socket;
@@ -42,8 +60,10 @@ export default function Dashboard() {
     try {
       const updated = await updateOrderStatus(order._id, nextStatus);
       setOrders((prev) => prev.map((o) => (o._id === updated._id ? updated : o)));
-    } catch {
-      // no-op: the socket broadcast (or next poll) will reconcile state
+    } catch (err) {
+      // if the session expired, send them back to login; otherwise the socket
+      // broadcast (or next poll) will reconcile state
+      handleAuthError(err);
     }
   }
 
@@ -81,6 +101,12 @@ export default function Dashboard() {
             />
             {connected ? 'Live' : 'Reconnecting…'}
           </span>
+          <button style={styles.menuBtn} onClick={() => navigate('/admin/menu')}>
+            Manage menu
+          </button>
+          <button style={styles.logoutBtn} onClick={handleLogout}>
+            Log out
+          </button>
         </div>
       </header>
 
@@ -170,6 +196,26 @@ const styles = {
     width: 8,
     height: 8,
     borderRadius: '50%'
+  },
+  menuBtn: {
+    border: '1px solid rgba(250,247,240,0.3)',
+    background: 'transparent',
+    color: 'var(--paper)',
+    borderRadius: 999,
+    padding: '8px 14px',
+    fontSize: 12,
+    fontWeight: 600,
+    cursor: 'pointer'
+  },
+  logoutBtn: {
+    border: 'none',
+    background: 'var(--saffron)',
+    color: 'var(--ink)',
+    borderRadius: 999,
+    padding: '8px 14px',
+    fontSize: 12,
+    fontWeight: 700,
+    cursor: 'pointer'
   },
   board: {
     display: 'grid',

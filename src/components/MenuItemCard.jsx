@@ -6,9 +6,10 @@ export default function MenuItemCard({ item }) {
   const { cart, addItem, setQuantity } = useCart();
   const inCart = cart.find((i) => i.menuItem === item._id);
   const quantity = inCart ? inCart.quantity : 0;
+  const outOfStock = item.isAvailable === false;
 
   return (
-    <article style={styles.card}>
+    <article style={{ ...styles.card, ...(outOfStock ? styles.cardDisabled : {}) }}>
       <div style={styles.topRow}>
         <span
           style={{
@@ -25,8 +26,10 @@ export default function MenuItemCard({ item }) {
             }}
           />
         </span>
-        {item.spiceLevel > 0 && (
-          <span style={styles.spice}>{SPICE_LABEL[item.spiceLevel]}</span>
+        {outOfStock ? (
+          <span style={styles.oosBadge}>Out of stock</span>
+        ) : (
+          item.spiceLevel > 0 && <span style={styles.spice}>{SPICE_LABEL[item.spiceLevel]}</span>
         )}
       </div>
 
@@ -40,7 +43,9 @@ export default function MenuItemCard({ item }) {
           ₹{item.price}
         </span>
 
-        {quantity === 0 ? (
+        {outOfStock ? (
+          <span style={styles.unavailableLabel}>Unavailable</span>
+        ) : quantity === 0 ? (
           <button style={styles.addBtn} onClick={() => addItem(item, 1)}>
             Add
           </button>
@@ -80,6 +85,25 @@ const styles = {
     flexDirection: 'column',
     gap: 8,
     boxShadow: 'var(--shadow-card)'
+  },
+  cardDisabled: {
+    opacity: 0.55
+  },
+  oosBadge: {
+    fontSize: 10.5,
+    fontWeight: 700,
+    color: 'var(--chili)',
+    border: '1px solid var(--chili)',
+    borderRadius: 999,
+    padding: '2px 8px',
+    textTransform: 'uppercase',
+    letterSpacing: '0.03em'
+  },
+  unavailableLabel: {
+    fontSize: 12,
+    fontWeight: 600,
+    color: 'var(--ink-soft)',
+    fontStyle: 'italic'
   },
   topRow: {
     display: 'flex',

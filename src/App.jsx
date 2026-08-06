@@ -4,6 +4,9 @@ import Checkout from './pages/Checkout.jsx';
 import OrderSuccess from './pages/OrderSuccess.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import QrCodePage from './pages/QrCodePage.jsx';
+import AdminLogin from './pages/AdminLogin.jsx';
+import AdminMenu from './pages/AdminMenu.jsx';
+import AdminRoute from './components/AdminRoute.jsx';
 
 export default function App() {
   return (
@@ -11,8 +14,25 @@ export default function App() {
       <Route path="/" element={<Menu />} />
       <Route path="/checkout" element={<Checkout />} />
       <Route path="/order-success/:orderNumber" element={<OrderSuccess />} />
-      <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/qr" element={<QrCodePage />} />
+
+      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route
+        path="/dashboard"
+        element={
+          <AdminRoute>
+            <Dashboard />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/menu"
+        element={
+          <AdminRoute>
+            <AdminMenu />
+          </AdminRoute>
+        }
+      />
     </Routes>
   );
 }

@@ -10,7 +10,7 @@ export default function Menu() {
   const [activeCategory, setActiveCategory] = useState('All');
 
   useEffect(() => {
-    fetchMenu()
+    fetchMenu(true) // include out-of-stock items so they show a badge instead of vanishing
       .then(setItems)
       .catch(() => setError('Could not load the menu. Pull to refresh and try again.'))
       .finally(() => setLoading(false));
