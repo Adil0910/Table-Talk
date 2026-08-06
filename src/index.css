@@ -1,0 +1,79 @@
+:root {
+  --paper: #faf7f0;
+  --paper-dim: #f0ead9;
+  --ink: #22201c;
+  --ink-soft: #55504a;
+  --line: #ddd4c2;
+  --saffron: #e0973a;
+  --saffron-deep: #c97b21;
+  --herb: #4c6b4f;
+  --herb-deep: #385138;
+  --chili: #c1442e;
+  --gold-tint: #fbeed9;
+
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --radius: 10px;
+  --shadow-card: 0 1px 2px rgba(34, 32, 28, 0.06), 0 8px 24px -12px rgba(34, 32, 28, 0.18);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+button {
+  font-family: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: var(--saffron);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--herb);
+  outline-offset: 2px;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
