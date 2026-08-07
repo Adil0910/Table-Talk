@@ -270,11 +270,12 @@ const styles = {
     background: '#fff',
     border: '1px solid var(--line)',
     borderRadius: 12,
-    padding: '14px 18px',
+    padding: '47px 18px',
     display: 'flex',
     flexDirection: 'column',
-    gap: 2,
-    minWidth: 180
+    gap: 18,
+    minWidth: 180,
+    width: '50%'
   },
   statLabel: {
     fontSize: 11,
