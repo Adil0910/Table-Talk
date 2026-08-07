@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { usePwaInstall } from '../hooks/usePwaInstall.js';
+import { DownloadIcon } from "@animateicons/react/lucide";
 
 export default function InstallButton({ compact = false }) {
   const { canInstall, isIos, installed, promptInstall } = usePwaInstall();
@@ -23,7 +24,7 @@ export default function InstallButton({ compact = false }) {
         onClick={handleClick}
         aria-label="Install this app"
       >
-        <span style={styles.icon}>⬇</span>
+         <DownloadIcon size={24} color="#f45b48" />
         {!compact && <span>Install app</span>}
       </button>
 
