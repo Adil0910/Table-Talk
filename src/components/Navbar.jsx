@@ -76,14 +76,15 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: 8,
-    background: 'var(--ink)',
-    color: 'var(--paper)',
+    background: '#fffdf81c',
+    color: '#000000c7',
     border: 'none',
     borderRadius: 999,
     padding: '10px 16px',
     fontSize: 13,
     fontWeight: 600,
-    cursor: 'pointer'
+    cursor: 'pointer',
+    boxShadow: 'inset 0 0 8px #0000001c',
   },
   cartIcon: {
     fontSize: 15
