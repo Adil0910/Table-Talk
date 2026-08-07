@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard.jsx';
 import QrCodePage from './pages/QrCodePage.jsx';
 import AdminLogin from './pages/AdminLogin.jsx';
 import AdminMenu from './pages/AdminMenu.jsx';
+import AdminHistory from './pages/AdminHistory.jsx';
 import AdminRoute from './components/AdminRoute.jsx';
 
 export default function App() {
@@ -13,7 +14,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Menu />} />
       <Route path="/checkout" element={<Checkout />} />
-      <Route path="/order-success/:orderNumber" element={<OrderSuccess />} />
+      <Route path="/order-success/:orderId" element={<OrderSuccess />} />
       <Route path="/qr" element={<QrCodePage />} />
 
       <Route path="/admin/login" element={<AdminLogin />} />
@@ -30,6 +31,14 @@ export default function App() {
         element={
           <AdminRoute>
             <AdminMenu />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/history"
+        element={
+          <AdminRoute>
+            <AdminHistory />
           </AdminRoute>
         }
       />

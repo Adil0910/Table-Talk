@@ -53,6 +53,13 @@ export const placeOrder = (payload) => api.post('/orders', payload).then((r) => 
 export const fetchOrders = (status) =>
   api.get('/orders', { params: status ? { status } : {} }).then((r) => r.data);
 
+export const fetchOrderById = (id) => api.get(`/orders/${id}`).then((r) => r.data);
+
+export const fetchOrderHistory = (params = {}) =>
+  api.get('/orders/history', { params }).then((r) => r.data);
+
+export const fetchOrderStats = () => api.get('/orders/stats').then((r) => r.data);
+
 export const updateOrderStatus = (id, status) =>
   api.patch(`/orders/${id}/status`, { status }).then((r) => r.data);
 

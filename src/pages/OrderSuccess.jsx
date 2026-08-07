@@ -1,26 +1,60 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { io } from 'socket.io-client';
-import { SOCKET_URL } from '../api.js';
+import { fetchOrderById, SOCKET_URL } from '../api.js';
+import { saveLastOrder, clearLastOrder } from '../utils/lastOrder.js';
 
 export default function OrderSuccess() {
-  const { orderNumber } = useParams();
+  const { orderId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   const [order, setOrder] = useState(location.state?.order || null);
+  const [loading, setLoading] = useState(!location.state?.order);
+  const [notFound, setNotFound] = useState(false);
+
+  // Always confirm against the server so a refresh / reopened tab shows the
+  // real current status, not just whatever was true at checkout time.
+  useEffect(() => {
+    let cancelled = false;
+    fetchOrderById(orderId)
+      .then((fresh) => {
+        if (cancelled) return;
+        setOrder(fresh);
+        saveLastOrder(fresh);
+      })
+      .catch(() => {
+        if (!cancelled) setNotFound(true);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [orderId]);
 
   useEffect(() => {
-    if (!order) return;
     const socket = io(SOCKET_URL);
     socket.on('order:updated', (updated) => {
-      if (updated.orderNumber === order.orderNumber) {
+      if (updated._id === orderId) {
         setOrder(updated);
+        if (updated.status === 'served' || updated.status === 'cancelled') {
+          clearLastOrder();
+        }
       }
     });
     return () => socket.disconnect();
-  }, [order?._id]);
+  }, [orderId]);
 
-  if (!order) {
+  if (loading) {
+    return (
+      <div style={styles.page}>
+        <p style={{ padding: 20, color: 'var(--ink-soft)' }}>Loading your order…</p>
+      </div>
+    );
+  }
+
+  if (notFound || !order) {
     return (
       <div style={styles.page}>
         <p style={{ padding: 20, color: 'var(--ink-soft)' }}>
@@ -42,9 +76,7 @@ export default function OrderSuccess() {
             <h1 className="font-display" style={styles.orderNo}>
               #{String(order.orderNumber).padStart(4, '0')}
             </h1>
-            <p style={styles.statusLine}>
-              Status: <strong style={styles.statusValue}>{order.status}</strong>
-            </p>
+            <StatusTracker status={order.status} />
           </div>
 
           <div style={styles.perfLine} aria-hidden="true">
@@ -87,13 +119,69 @@ export default function OrderSuccess() {
       </div>
 
       <p style={styles.note}>
-        Your order has been sent straight to the kitchen — no need to flag anyone down. We'll bring
-        it out as soon as it's ready.
+        {order.status === 'served'
+          ? 'Enjoy your meal! Thanks for ordering with us.'
+          : order.status === 'cancelled'
+          ? 'This order was cancelled. Ask a staff member if this seems wrong.'
+          : "Your order is with the kitchen — this page updates on its own, no need to refresh."}
       </p>
 
       <button style={styles.primaryBtn} onClick={() => navigate('/')}>
         Order something else
       </button>
+    </div>
+  );
+}
+
+const STEPS = [
+  { key: 'pending', label: 'Received' },
+  { key: 'preparing', label: 'Preparing' },
+  { key: 'ready', label: 'Ready' },
+  { key: 'served', label: 'Served' }
+];
+
+function StatusTracker({ status }) {
+  if (status === 'cancelled') {
+    return <p style={styles.cancelledPill}>Order cancelled</p>;
+  }
+
+  const activeIndex = STEPS.findIndex((s) => s.key === status);
+
+  return (
+    <div style={styles.tracker}>
+      {STEPS.map((step, idx) => {
+        const done = idx <= activeIndex;
+        return (
+          <div key={step.key} style={styles.trackerStep}>
+            <div style={styles.trackerStepTop}>
+              <span
+                style={{
+                  ...styles.trackerDot,
+                  background: done ? 'var(--herb)' : 'var(--line)',
+                  borderColor: done ? 'var(--herb)' : 'var(--line)'
+                }}
+              />
+              {idx < STEPS.length - 1 && (
+                <span
+                  style={{
+                    ...styles.trackerLine,
+                    background: idx < activeIndex ? 'var(--herb)' : 'var(--line)'
+                  }}
+                />
+              )}
+            </div>
+            <span
+              style={{
+                ...styles.trackerLabel,
+                color: done ? 'var(--ink)' : 'var(--ink-soft)',
+                fontWeight: done ? 700 : 500
+              }}
+            >
+              {step.label}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -120,7 +208,7 @@ const styles = {
     overflow: 'hidden'
   },
   ticketHeader: {
-    padding: '26px 24px 20px',
+    padding: '26px 24px 22px',
     textAlign: 'center'
   },
   eyebrow: {
@@ -132,17 +220,55 @@ const styles = {
     fontWeight: 700
   },
   orderNo: {
-    margin: '6px 0',
+    margin: '6px 0 18px',
     fontSize: 40
   },
-  statusLine: {
+  cancelledPill: {
+    display: 'inline-block',
     margin: 0,
     fontSize: 13,
-    color: 'var(--ink-soft)'
+    fontWeight: 700,
+    color: 'var(--chili)',
+    border: '1px solid var(--chili)',
+    borderRadius: 999,
+    padding: '6px 14px'
   },
-  statusValue: {
-    color: 'var(--saffron-deep)',
-    textTransform: 'capitalize'
+  tracker: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+    padding: '0 8px'
+  },
+  trackerStep: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    flex: 1,
+    minWidth: 0
+  },
+  trackerStepTop: {
+    display: 'flex',
+    alignItems: 'center',
+    width: '100%'
+  },
+  trackerDot: {
+    width: 14,
+    height: 14,
+    borderRadius: '50%',
+    border: '2px solid',
+    flexShrink: 0,
+    marginLeft: 'auto',
+    marginRight: 'auto'
+  },
+  trackerLine: {
+    height: 2,
+    flexGrow: 1,
+    marginLeft: -2
+  },
+  trackerLabel: {
+    fontSize: 11,
+    marginTop: 6,
+    textAlign: 'center'
   },
   perfLine: {
     display: 'flex',

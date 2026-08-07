@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
-import { fetchOrders, updateOrderStatus, clearAdminToken, SOCKET_URL } from '../api.js';
+import { fetchOrders, fetchOrderStats, updateOrderStatus, clearAdminToken, SOCKET_URL } from '../api.js';
 import OrderTicket from '../components/OrderTicket.jsx';
 import InstallButton from '../components/InstallButton.jsx';
 
@@ -9,11 +9,12 @@ const COLUMNS = [
   { key: 'pending', label: 'New', accent: 'var(--chili)' },
   { key: 'preparing', label: 'Preparing', accent: 'var(--saffron-deep)' },
   { key: 'ready', label: 'Ready to serve', accent: 'var(--herb-deep)' },
-  { key: 'served', label: 'Served', accent: 'var(--ink-soft)' }
+  { key: 'served', label: 'Served (last 24h)', accent: 'var(--ink-soft)' }
 ];
 
 export default function Dashboard() {
   const [orders, setOrders] = useState([]);
+  const [stats, setStats] = useState(null);
   const [connected, setConnected] = useState(false);
   const [flashId, setFlashId] = useState(null);
   const socketRef = useRef(null);
@@ -33,10 +34,26 @@ export default function Dashboard() {
     navigate('/admin/login', { replace: true });
   }
 
+  function refreshStats() {
+    fetchOrderStats()
+      .then(setStats)
+      .catch(() => {});
+  }
+
   useEffect(() => {
     fetchOrders()
       .then(setOrders)
       .catch((err) => handleAuthError(err));
+    refreshStats();
+
+    // Re-pull the board periodically so tickets that age past the 24h window
+    // (see server: GET /api/orders) drop off on their own, without needing a
+    // manual refresh. Full history stays available on the History page.
+    const boardInterval = setInterval(() => {
+      fetchOrders()
+        .then(setOrders)
+        .catch(() => {});
+    }, 5 * 60 * 1000);
 
     const socket = io(SOCKET_URL);
     socketRef.current = socket;
@@ -48,13 +65,18 @@ export default function Dashboard() {
       setOrders((prev) => [order, ...prev]);
       setFlashId(order._id);
       setTimeout(() => setFlashId(null), 2500);
+      refreshStats();
     });
 
     socket.on('order:updated', (updated) => {
       setOrders((prev) => prev.map((o) => (o._id === updated._id ? updated : o)));
+      refreshStats();
     });
 
-    return () => socket.disconnect();
+    return () => {
+      socket.disconnect();
+      clearInterval(boardInterval);
+    };
   }, []);
 
   async function handleAdvance(order, nextStatus) {
@@ -103,6 +125,9 @@ export default function Dashboard() {
             {connected ? 'Live' : 'Reconnecting…'}
           </span>
           <InstallButton compact />
+          <button style={styles.menuBtn} onClick={() => navigate('/admin/history')}>
+            History
+          </button>
           <button style={styles.menuBtn} onClick={() => navigate('/admin/menu')}>
             Manage menu
           </button>
@@ -111,6 +136,23 @@ export default function Dashboard() {
           </button>
         </div>
       </header>
+
+      <div style={styles.statsBar}>
+        <div style={styles.statCard}>
+          <span style={styles.statLabel}>Today's revenue</span>
+          <span className="mono" style={styles.statValue}>
+            ₹{stats ? stats.today.revenue : '—'}
+          </span>
+          <span style={styles.statSub}>{stats ? stats.today.orders : '—'} orders</span>
+        </div>
+        <div style={styles.statCard}>
+          <span style={styles.statLabel}>This month's revenue</span>
+          <span className="mono" style={styles.statValue}>
+            ₹{stats ? stats.month.revenue : '—'}
+          </span>
+          <span style={styles.statSub}>{stats ? stats.month.orders : '—'} orders</span>
+        </div>
+      </div>
 
       <div style={styles.board}>
         {COLUMNS.map((col) => (
@@ -218,6 +260,37 @@ const styles = {
     fontSize: 12,
     fontWeight: 700,
     cursor: 'pointer'
+  },
+  statsBar: {
+    display: 'flex',
+    gap: 14,
+    padding: '16px 20px 0'
+  },
+  statCard: {
+    background: '#fff',
+    border: '1px solid var(--line)',
+    borderRadius: 12,
+    padding: '14px 18px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 2,
+    minWidth: 180
+  },
+  statLabel: {
+    fontSize: 11,
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    letterSpacing: '0.04em',
+    color: 'var(--ink-soft)'
+  },
+  statValue: {
+    fontSize: 24,
+    fontWeight: 700,
+    color: 'var(--herb-deep)'
+  },
+  statSub: {
+    fontSize: 12,
+    color: 'var(--ink-soft)'
   },
   board: {
     display: 'grid',

@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import Navbar from '../components/Navbar.jsx';
 import MenuItemCard from '../components/MenuItemCard.jsx';
+import OrderTrackerBanner from '../components/OrderTrackerBanner.jsx';
 import { fetchMenu } from '../api.js';
+import { getLastOrder } from '../utils/lastOrder.js';
 
 export default function Menu() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
+  const [lastOrder] = useState(getLastOrder);
 
   useEffect(() => {
     fetchMenu(true) // include out-of-stock items so they show a badge instead of vanishing
@@ -39,6 +42,7 @@ export default function Menu() {
   return (
     <div style={{ minHeight: '100%', paddingBottom: 48 }}>
       <Navbar />
+      {lastOrder && <OrderTrackerBanner order={lastOrder} />}
 
       <div style={styles.hero}>
         <p style={styles.eyebrow}>Today's menu</p>

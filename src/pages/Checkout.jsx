@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
 import { placeOrder } from '../api.js';
+import { saveLastOrder } from '../utils/lastOrder.js';
 
 export default function Checkout() {
   const { cart, setQuantity, removeItem, totalAmount, clearCart } = useCart();
@@ -32,7 +33,8 @@ export default function Checkout() {
         }))
       });
       clearCart();
-      navigate(`/order-success/${order.orderNumber}`, { state: { order } });
+      saveLastOrder(order);
+      navigate(`/order-success/${order._id}`, { state: { order } });
     } catch (err) {
       setError(
         err?.response?.data?.message || 'Could not place the order. Please try again.'
