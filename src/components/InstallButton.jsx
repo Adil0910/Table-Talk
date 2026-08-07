@@ -24,7 +24,7 @@ export default function InstallButton({ compact = false }) {
         onClick={handleClick}
         aria-label="Install this app"
       >
-         <DownloadIcon size={22} color="#f9f9f9" />
+         <DownloadIcon size={20} color="#f9f9f9" />
         {!compact && <span>Install app</span>}
       </button>
 
@@ -47,7 +47,7 @@ const styles = {
     alignItems: 'center',
     gap: 6,
     border: '1px solid var(--herb)',
-    background: 'var(--herb)',
+    background: 'black',
     color: '#fff',
     borderRadius: 999,
     padding: '9px 14px',

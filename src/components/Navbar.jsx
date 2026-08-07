@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
 import InstallButton from './InstallButton.jsx';
+import { ShoppingCartIcon } from "@animateicons/react/lucide";
+
 
 export default function Navbar() {
   const { itemCount, totalAmount } = useCart();
@@ -26,7 +28,8 @@ export default function Navbar() {
           disabled={itemCount === 0}
           aria-label={`View cart, ${itemCount} items`}
         >
-          <span style={styles.cartIcon}>🧺</span>
+          	<ShoppingCartIcon size={20} color="#060606" />;
+
           <span>
             {itemCount} item{itemCount === 1 ? '' : 's'}
           </span>
@@ -85,8 +88,8 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: 8,
-    background: 'var(--ink)',
-    color: 'var(--paper)',
+    background: 'white',
+    color: 'black',
     border: 'none',
     borderRadius: 999,
     padding: '10px 16px',
