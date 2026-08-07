@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
+import InstallButton from './InstallButton.jsx';
 
 export default function Navbar() {
   const { itemCount, totalAmount } = useCart();
@@ -17,18 +18,21 @@ export default function Navbar() {
         </div>
       </div>
 
-      <button
-        style={styles.cartButton}
-        onClick={() => navigate('/checkout')}
-        disabled={itemCount === 0}
-        aria-label={`View cart, ${itemCount} items`}
-      >
-        <span style={styles.cartIcon}>🧺</span>
-        <span>
-          {itemCount} item{itemCount === 1 ? '' : 's'}
-        </span>
-        {itemCount > 0 && <span className="mono" style={styles.cartTotal}>₹{totalAmount}</span>}
-      </button>
+      <div style={styles.rightGroup}>
+        <InstallButton />
+        <button
+          style={styles.cartButton}
+          onClick={() => navigate('/checkout')}
+          disabled={itemCount === 0}
+          aria-label={`View cart, ${itemCount} items`}
+        >
+          <span style={styles.cartIcon}>🧺</span>
+          <span>
+            {itemCount} item{itemCount === 1 ? '' : 's'}
+          </span>
+          {itemCount > 0 && <span className="mono" style={styles.cartTotal}>₹{totalAmount}</span>}
+        </button>
+      </div>
     </header>
   );
 }
@@ -72,19 +76,23 @@ const styles = {
     letterSpacing: '0.04em',
     textTransform: 'uppercase'
   },
+  rightGroup: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8
+  },
   cartButton: {
     display: 'flex',
     alignItems: 'center',
     gap: 8,
-    background: '#fffdf81c',
-    color: '#000000c7',
+    background: 'var(--ink)',
+    color: 'var(--paper)',
     border: 'none',
     borderRadius: 999,
     padding: '10px 16px',
     fontSize: 13,
     fontWeight: 600,
-    cursor: 'pointer',
-    boxShadow: 'inset 0 0 8px #0000001c',
+    cursor: 'pointer'
   },
   cartIcon: {
     fontSize: 15

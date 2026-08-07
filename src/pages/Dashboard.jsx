@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import { fetchOrders, updateOrderStatus, clearAdminToken, SOCKET_URL } from '../api.js';
 import OrderTicket from '../components/OrderTicket.jsx';
+import InstallButton from '../components/InstallButton.jsx';
 
 const COLUMNS = [
   { key: 'pending', label: 'New', accent: 'var(--chili)' },
@@ -101,6 +102,7 @@ export default function Dashboard() {
             />
             {connected ? 'Live' : 'Reconnecting…'}
           </span>
+          <InstallButton compact />
           <button style={styles.menuBtn} onClick={() => navigate('/admin/menu')}>
             Manage menu
           </button>
