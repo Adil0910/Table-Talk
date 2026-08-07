@@ -28,7 +28,7 @@ export default function Navbar() {
           disabled={itemCount === 0}
           aria-label={`View cart, ${itemCount} items`}
         >
-          	<ShoppingCartIcon size={20} color="#060606" />;
+          	<ShoppingCartIcon size={20} color="#060606" />
 
           <span>
             {itemCount} item{itemCount === 1 ? '' : 's'}
